@@ -1,0 +1,2332 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EV — Estudo de Viabilidade | Guia Interativo</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #05080f;
+  --surface: #0b1020;
+  --surface2: #111827;
+  --border: rgba(255,255,255,0.07);
+  --accent: #3b82f6;
+  --accent2: #60a5fa;
+  --accent3: #818cf8;
+  --gold: #f59e0b;
+  --text: #e2e8f0;
+  --text-muted: #64748b;
+  --text-dim: #94a3b8;
+  --green: #10b981;
+  --red: #ef4444;
+  --sidebar-w: 280px;
+  --header-h: 60px;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--accent);border-radius:2px}
+
+/* ── TOP HEADER ── */
+#topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--header-h);
+  background: rgba(5,8,15,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  z-index: 100;
+  gap: 16px;
+}
+
+#topbar .logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  color: var(--accent2);
+  white-space: nowrap;
+}
+
+#topbar .logo span { color: var(--text-muted); font-weight: 400; }
+
+#topbar .divider { width: 1px; height: 28px; background: var(--border); flex-shrink: 0; }
+
+#search-wrap {
+  flex: 1;
+  max-width: 380px;
+  position: relative;
+}
+#search-wrap svg {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  width: 15px; height: 15px;
+  stroke: var(--text-muted);
+}
+#search {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 12px 7px 36px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  outline: none;
+  transition: border-color .2s;
+}
+#search:focus { border-color: var(--accent); }
+#search::placeholder { color: var(--text-muted); }
+
+#search-results {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0; right: 0;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  max-height: 280px;
+  overflow-y: auto;
+  display: none;
+  z-index: 200;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+}
+#search-results.show { display: block; }
+.sr-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background .15s;
+}
+.sr-item:last-child { border-bottom: none; }
+.sr-item:hover { background: var(--surface); }
+.sr-item .sr-title { font-size: 13px; font-weight: 500; color: var(--text); }
+.sr-item .sr-section { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.sr-item .sr-highlight { color: var(--accent2); }
+
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress-pill {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.progress-pill .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100%{opacity:1} 50%{opacity:.3}
+}
+
+/* ── SIDEBAR ── */
+#sidebar {
+  position: fixed;
+  top: var(--header-h);
+  left: 0;
+  width: var(--sidebar-w);
+  height: calc(100vh - var(--header-h));
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 80;
+  padding: 16px 0 40px;
+}
+
+.sidebar-section-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  padding: 16px 18px 6px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 18px;
+  cursor: pointer;
+  transition: all .15s;
+  border-left: 2px solid transparent;
+  position: relative;
+}
+.nav-item:hover { background: rgba(59,130,246,0.06); }
+.nav-item.active {
+  background: rgba(59,130,246,0.1);
+  border-left-color: var(--accent);
+}
+.nav-item .nav-icon {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  background: var(--surface2);
+  flex-shrink: 0;
+  transition: background .15s;
+}
+.nav-item.active .nav-icon { background: rgba(59,130,246,0.2); }
+.nav-item .nav-label {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.3;
+}
+.nav-item.active .nav-label { color: var(--text); font-weight: 500; }
+
+.nav-sub {
+  padding: 4px 18px 4px 58px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: color .15s;
+  border-left: 2px solid transparent;
+}
+.nav-sub:hover { color: var(--text-dim); }
+.nav-sub.active { color: var(--accent2); border-left-color: var(--accent); }
+
+/* ── MAIN CONTENT ── */
+#main {
+  margin-left: var(--sidebar-w);
+  margin-top: var(--header-h);
+  min-height: calc(100vh - var(--header-h));
+}
+
+/* ── SECTIONS ── */
+.section {
+  display: none;
+  padding: 48px 56px;
+  max-width: 900px;
+  animation: fadeSlide .3s ease both;
+}
+.section.active { display: block; }
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── HERO (COVER) ── */
+#section-cover {
+  max-width: none;
+  padding: 0;
+  min-height: calc(100vh - var(--header-h));
+  display: none;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+#section-cover.active { display: flex; }
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 70% 40%, rgba(59,130,246,0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 10% 80%, rgba(99,102,241,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 90% 90%, rgba(16,185,129,0.05) 0%, transparent 60%);
+}
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: linear-gradient(to bottom, transparent, rgba(0,0,0,0.3) 30%, rgba(0,0,0,0.3) 70%, transparent);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px 72px;
+}
+
+.hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(59,130,246,0.1);
+  border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--accent2);
+  margin-bottom: 32px;
+  width: fit-content;
+  letter-spacing: 0.05em;
+}
+
+.hero-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(42px, 6vw, 72px);
+  line-height: 1.05;
+  margin-bottom: 12px;
+}
+.hero-title .line1 { display: block; color: var(--text); }
+.hero-title .line2 {
+  display: block;
+  background: linear-gradient(135deg, var(--accent), var(--accent3));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-subtitle {
+  font-size: 17px;
+  color: var(--text-dim);
+  max-width: 500px;
+  margin-bottom: 48px;
+  line-height: 1.6;
+}
+
+.hero-cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .2s;
+}
+.btn-primary:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(59,130,246,0.35); }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent2); }
+
+.hero-stats {
+  display: flex;
+  gap: 40px;
+  margin-top: 64px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border);
+}
+.hero-stat .num {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+}
+.hero-stat .label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ── SECTION HEADER ── */
+.sec-header {
+  margin-bottom: 36px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+.sec-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sec-tag::before {
+  content: '';
+  display: block;
+  width: 20px;
+  height: 1px;
+  background: var(--accent);
+}
+.sec-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 30px;
+  color: var(--text);
+  line-height: 1.2;
+}
+.sec-desc {
+  margin-top: 10px;
+  font-size: 15px;
+  color: var(--text-dim);
+  max-width: 640px;
+}
+
+/* ── H2 / H3 ── */
+h2.sub {
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 17px;
+  color: var(--accent2);
+  margin: 32px 0 10px;
+}
+h3.sub3 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-dim);
+  margin: 22px 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ── PROSE ── */
+p.prose {
+  color: var(--text-dim);
+  margin-bottom: 14px;
+  line-height: 1.75;
+}
+
+/* ── CARDS ── */
+.card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+.card-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+.card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  transition: border-color .2s, transform .2s;
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+  opacity: 0;
+  transition: opacity .2s;
+}
+.card:hover { border-color: rgba(59,130,246,0.3); transform: translateY(-2px); }
+.card:hover::before { opacity: 1; }
+.card .card-icon { font-size: 22px; margin-bottom: 10px; }
+.card .card-title { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 14px; color: var(--text); margin-bottom: 6px; }
+.card .card-body { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+/* ── INFO BOX ── */
+.info-box {
+  background: rgba(59,130,246,0.07);
+  border: 1px solid rgba(59,130,246,0.2);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 10px 10px 0;
+  padding: 14px 18px;
+  margin: 20px 0;
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.65;
+}
+.info-box .info-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--accent2);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.warn-box {
+  background: rgba(245,158,11,0.07);
+  border: 1px solid rgba(245,158,11,0.2);
+  border-left: 3px solid var(--gold);
+  border-radius: 0 10px 10px 0;
+  padding: 14px 18px;
+  margin: 20px 0;
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+/* ── FORMULA ── */
+.formula {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 18px 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: var(--accent2);
+  text-align: center;
+  position: relative;
+}
+.formula::before {
+  content: 'FÓRMULA';
+  position: absolute;
+  top: -8px;
+  left: 14px;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  background: var(--surface2);
+  padding: 0 6px;
+}
+
+/* ── TABLE ── */
+.styled-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 13px;
+}
+.styled-table th {
+  background: var(--accent);
+  color: white;
+  padding: 10px 14px;
+  text-align: left;
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+}
+.styled-table th:first-child { border-radius: 8px 0 0 0; }
+.styled-table th:last-child { border-radius: 0 8px 0 0; }
+.styled-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+  vertical-align: top;
+}
+.styled-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.styled-table tr:last-child td { border-bottom: none; }
+.styled-table tr:hover td { background: rgba(59,130,246,0.05); }
+
+/* ── BADGE ── */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: 'JetBrains Mono', monospace;
+}
+.badge-blue { background: rgba(59,130,246,0.15); color: var(--accent2); border: 1px solid rgba(59,130,246,0.25); }
+.badge-green { background: rgba(16,185,129,0.12); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+.badge-gold { background: rgba(245,158,11,0.12); color: var(--gold); border: 1px solid rgba(245,158,11,0.2); }
+.badge-red { background: rgba(239,68,68,0.12); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
+
+/* ── STEPS ── */
+.step-list { margin: 20px 0; }
+.step-item {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  position: relative;
+}
+.step-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 32px;
+  width: 1px;
+  height: calc(100% + 4px);
+  background: var(--border);
+}
+.step-num {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: rgba(59,130,246,0.15);
+  border: 1px solid rgba(59,130,246,0.3);
+  color: var(--accent2);
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+.step-body { padding-top: 4px; }
+.step-body .step-title { font-weight: 500; font-size: 14px; margin-bottom: 4px; }
+.step-body .step-text { font-size: 13px; color: var(--text-muted); }
+
+/* ── BULLETS ── */
+ul.ev-list { list-style: none; padding: 0; margin: 12px 0; }
+ul.ev-list li {
+  padding: 5px 0 5px 22px;
+  position: relative;
+  font-size: 14px;
+  color: var(--text-dim);
+}
+ul.ev-list li::before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+
+/* ── COMPARE GRID (PRICE vs SAC) ── */
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 20px 0;
+}
+.compare-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+}
+.compare-card.price { border-top: 2px solid var(--accent); }
+.compare-card.sac { border-top: 2px solid var(--green); }
+.compare-card .cc-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+.compare-card.price .cc-title { color: var(--accent2); }
+.compare-card.sac .cc-title { color: var(--green); }
+.cc-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.cc-row:last-child { border-bottom: none; }
+.cc-row .cc-label { color: var(--text-muted); }
+.cc-row .cc-val { color: var(--text); font-weight: 500; }
+
+/* ── DRE VISUAL ── */
+.dre-flow {
+  margin: 24px 0;
+  position: relative;
+}
+.dre-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  margin-bottom: 2px;
+  transition: background .15s;
+  cursor: default;
+}
+.dre-row:hover { background: rgba(255,255,255,0.03); }
+.dre-row .op {
+  width: 28px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+  text-align: center;
+}
+.op.plus { color: var(--green); }
+.op.minus { color: var(--red); }
+.dre-row .dre-label { flex: 1; font-size: 14px; color: var(--text); }
+.dre-row .dre-desc { font-size: 12px; color: var(--text-muted); text-align: right; max-width: 240px; }
+.dre-highlight {
+  background: rgba(59,130,246,0.08);
+  border: 1px solid rgba(59,130,246,0.15);
+  border-radius: 8px;
+  padding: 10px 16px;
+  margin: 8px 0;
+}
+.dre-highlight .dre-label { font-weight: 600; color: var(--accent2); }
+
+/* ── INDICATORS ── */
+.indicator-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin: 20px 0; }
+.ind-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 18px;
+  text-align: center;
+}
+.ind-card .ind-icon { font-size: 24px; margin-bottom: 8px; }
+.ind-card .ind-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+.ind-card .ind-rule { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+.ind-card.vpl { border-top: 2px solid var(--green); }
+.ind-card.tir { border-top: 2px solid var(--accent); }
+.ind-card.pb  { border-top: 2px solid var(--gold); }
+.ind-card .ind-viavel { font-size: 11px; margin-top: 8px; }
+
+/* ── WACC CALCULATOR ── */
+.calc-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px;
+  margin: 24px 0;
+}
+.calc-box h4 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+.calc-field label {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 6px;
+}
+.calc-field input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 12px;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  outline: none;
+  transition: border-color .2s;
+}
+.calc-field input:focus { border-color: var(--accent); }
+.calc-result {
+  background: rgba(59,130,246,0.08);
+  border: 1px solid rgba(59,130,246,0.2);
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.calc-result .cr-label { font-size: 13px; color: var(--text-muted); }
+.calc-result .cr-value {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  color: var(--accent2);
+}
+
+/* ── MARKUP CALC ── */
+.markup-calc {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px;
+  margin: 24px 0;
+}
+.markup-calc h4 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 20px;
+}
+.markup-row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.markup-row .mf { flex: 1; min-width: 120px; }
+.markup-row .mf label { display: block; font-size: 11px; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; margin-bottom: 5px; }
+.markup-row .mf input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 11px;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  outline: none;
+  transition: border-color .2s;
+}
+.markup-row .mf input:focus { border-color: var(--accent); }
+.markup-result-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 16px; }
+.mr-cell {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  text-align: center;
+}
+.mr-cell .mr-label { font-size: 10px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+.mr-cell .mr-val { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; color: var(--text); }
+
+/* ── SCENARIO SIMULATOR ── */
+.scenario-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px;
+  margin: 24px 0;
+}
+.scenario-tabs { display: flex; gap: 6px; margin-bottom: 20px; }
+.stab {
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  transition: all .15s;
+  font-family: 'DM Sans', sans-serif;
+}
+.stab:hover { border-color: var(--accent); }
+.stab.active.pessimista { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3); color: var(--red); }
+.stab.active.base { background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.3); color: var(--accent2); }
+.stab.active.otimista { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.3); color: var(--green); }
+.scenario-content { display: none; }
+.scenario-content.active { display: block; animation: fadeSlide .25s ease; }
+.scenario-kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.skpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.skpi .sk-label { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+.skpi .sk-val { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; }
+.skpi.pos .sk-val { color: var(--green); }
+.skpi.neg .sk-val { color: var(--red); }
+.skpi.neu .sk-val { color: var(--accent2); }
+
+/* ── CHECKLIST ── */
+.checklist { margin: 12px 0; }
+.cl-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: background .15s;
+  border: 1px solid transparent;
+  margin-bottom: 4px;
+}
+.cl-item:hover { background: rgba(255,255,255,0.03); border-color: var(--border); }
+.cl-check {
+  width: 20px; height: 20px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: all .2s;
+  font-size: 12px;
+}
+.cl-item.done .cl-check {
+  background: var(--green);
+  border-color: var(--green);
+  color: white;
+}
+.cl-item.done { background: rgba(16,185,129,0.04); border-color: rgba(16,185,129,0.12); }
+.cl-item.done .cl-text { color: var(--text-muted); text-decoration: line-through; }
+.cl-text { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+.cl-tag {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+  align-self: center;
+}
+
+/* ── CHECKLIST TABS ── */
+.cl-tab-bar {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 5px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.cl-tab-bar::-webkit-scrollbar { display: none; }
+
+.cl-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+.cl-tab:hover { background: rgba(255,255,255,0.04); }
+.cl-tab.active { background: var(--surface); box-shadow: 0 1px 6px rgba(0,0,0,0.3); }
+.cl-tab .ct-icon { font-size: 18px; }
+.cl-tab .ct-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.3;
+}
+.cl-tab.active .ct-label { color: var(--text); }
+.cl-tab .ct-pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: var(--border);
+  color: var(--text-muted);
+  transition: all .2s;
+}
+.cl-tab.active .ct-pill { background: rgba(59,130,246,0.2); color: var(--accent2); }
+.cl-tab.done-all .ct-pill { background: rgba(16,185,129,0.2); color: var(--green); }
+.cl-tab.done-all .ct-icon::after {
+  content: ' ✓';
+  font-size: 11px;
+  color: var(--green);
+}
+
+.cl-panel { display: none; animation: fadeSlide .25s ease; }
+.cl-panel.active { display: block; }
+
+.cl-section-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cl-section-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* mini progress per tab */
+.cl-mini-bar-wrap {
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.cl-mini-bar {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--green));
+  transition: width .3s;
+  width: 0%;
+}
+
+/* overall progress card */
+.cl-overall {
+  margin-top: 28px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 24px;
+}
+.cl-overall-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 14px;
+}
+.cl-overall-label { font-size: 13px; color: var(--text-muted); }
+.cl-overall-nums { display: flex; align-items: baseline; gap: 4px; }
+.cl-overall-pct {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 32px;
+  color: var(--accent2);
+  line-height: 1;
+}
+.cl-overall-of { font-size: 13px; color: var(--text-muted); }
+.cl-overall-bar-wrap {
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.cl-overall-bar {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent), var(--accent3), var(--green));
+  transition: width .4s cubic-bezier(.4,0,.2,1);
+  width: 0%;
+}
+.cl-tab-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cl-tab-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: all .2s;
+}
+.cl-tab-pill.done { border-color: rgba(16,185,129,0.3); color: var(--green); }
+.cl-tab-pill .pill-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--border);
+  flex-shrink: 0;
+}
+.cl-tab-pill.done .pill-dot { background: var(--green); }
+
+/* ── GLOSSARY ── */
+.glossary-item {
+  border-bottom: 1px solid var(--border);
+  padding: 14px 0;
+}
+.glossary-item:last-child { border-bottom: none; }
+.gl-term {
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--accent2);
+  margin-bottom: 4px;
+}
+.gl-def { font-size: 13px; color: var(--text-muted); }
+
+/* ── READING PROGRESS ── */
+#read-progress {
+  position: fixed;
+  top: var(--header-h);
+  left: var(--sidebar-w);
+  right: 0;
+  height: 2px;
+  background: var(--border);
+  z-index: 90;
+}
+#read-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent3));
+  width: 0%;
+  transition: width .1s;
+}
+
+/* ── TOOLTIP ── */
+[data-tooltip] { position: relative; cursor: help; }
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--text);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .2s;
+  z-index: 300;
+}
+[data-tooltip]:hover::after { opacity: 1; }
+
+/* ── BACK TO TOP ── */
+#back-top {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: var(--accent);
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#back-top.show { opacity: 1; pointer-events: auto; }
+
+/* ── RESPONSIVE ── */
+@media(max-width:780px){
+  #sidebar { display: none; }
+  #main { margin-left: 0; }
+  .section { padding: 32px 24px; }
+  .card-grid, .compare-grid, .indicator-grid, .calc-grid { grid-template-columns: 1fr; }
+  .scenario-kpi-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header id="topbar">
+  <div class="logo">EV<span>/</span>GUIDE</div>
+  <div class="divider"></div>
+  <div id="search-wrap">
+    <svg fill="none" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="search" placeholder="Pesquisar no manual...">
+    <div id="search-results"></div>
+  </div>
+  <div class="topbar-right">
+    <div class="progress-pill">
+      <span class="dot"></span>
+      <span id="read-status">Início</span>
+    </div>
+  </div>
+</header>
+
+<!-- READ PROGRESS -->
+<div id="read-progress"><div id="read-progress-bar"></div></div>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-section-label">Navegação</div>
+
+  <div class="nav-item active" data-section="cover">
+    <div class="nav-icon">🏠</div>
+    <div class="nav-label">Início</div>
+  </div>
+  <div class="nav-item" data-section="conceitos">
+    <div class="nav-icon">📐</div>
+    <div class="nav-label">Conceitos Iniciais</div>
+  </div>
+  <div class="nav-sub" data-section="conceitos">Regime Tributário</div>
+  <div class="nav-sub" data-section="conceitos">WACC</div>
+
+  <div class="nav-item" data-section="investimentos">
+    <div class="nav-icon">💰</div>
+    <div class="nav-label">Investimentos e Gastos Fixos</div>
+  </div>
+
+  <div class="nav-item" data-section="financiamento">
+    <div class="nav-icon">🏦</div>
+    <div class="nav-label">Financiamento</div>
+  </div>
+  <div class="nav-sub" data-section="financiamento">Price vs SAC</div>
+
+  <div class="nav-item" data-section="gastos">
+    <div class="nav-icon">📦</div>
+    <div class="nav-label">Gastos Variáveis</div>
+  </div>
+
+  <div class="nav-item" data-section="precificacao">
+    <div class="nav-icon">🏷️</div>
+    <div class="nav-label">Precificação</div>
+  </div>
+  <div class="nav-sub" data-section="precificacao">Markup</div>
+  <div class="nav-sub" data-section="precificacao">Margem de Contribuição</div>
+  <div class="nav-sub" data-section="precificacao">JR Precification</div>
+
+  <div class="nav-item" data-section="dre">
+    <div class="nav-icon">📊</div>
+    <div class="nav-label">DRE</div>
+  </div>
+
+  <div class="nav-item" data-section="indicadores">
+    <div class="nav-icon">📈</div>
+    <div class="nav-label">Indicadores Financeiros</div>
+  </div>
+  <div class="nav-sub" data-section="indicadores">VPL · TIR · Payback</div>
+
+  <div class="nav-item" data-section="premissas">
+    <div class="nav-icon">🎯</div>
+    <div class="nav-label">Premissas & Cenários</div>
+  </div>
+
+  <div class="nav-item" data-section="ncg">
+    <div class="nav-icon">🔄</div>
+    <div class="nav-label">Fluxo de Caixa & NCG</div>
+  </div>
+
+  <div class="sidebar-section-label">Ferramentas</div>
+
+  <div class="nav-item" data-section="calculadoras">
+    <div class="nav-icon">🧮</div>
+    <div class="nav-label">Calculadoras</div>
+  </div>
+
+  <div class="nav-item" data-section="checklist">
+    <div class="nav-icon">✅</div>
+    <div class="nav-label">Checklist do Consultor</div>
+  </div>
+
+  <div class="nav-item" data-section="glossario">
+    <div class="nav-icon">📖</div>
+    <div class="nav-label">Glossário</div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main id="main">
+
+  <!-- ── COVER ── -->
+  <section id="section-cover" class="section active">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-content">
+      <div class="hero-tag">✦ Empresa JR ADM UFBA &nbsp;·&nbsp; Guia Completo</div>
+      <h1 class="hero-title">
+        <span class="line1">Estudo de</span>
+        <span class="line2">Viabilidade</span>
+      </h1>
+      <p class="hero-subtitle">Manual interativo para consultores. Navegue pelos conceitos, use as calculadoras e valide seu estudo passo a passo.</p>
+      <div class="hero-cta-row">
+        <button class="btn-primary" onclick="goTo('conceitos')">Começar agora →</button>
+        <button class="btn-ghost" onclick="goTo('calculadoras')">🧮 Abrir calculadoras</button>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="num">15+</div><div class="label">Seções</div></div>
+        <div class="hero-stat"><div class="num">3</div><div class="label">Calculadoras</div></div>
+        <div class="hero-stat"><div class="num">∞</div><div class="label">Cenários</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CONCEITOS INICIAIS ── -->
+  <section id="section-conceitos" class="section">
+    <div class="sec-header">
+      <div class="sec-tag">01 — Fundamentos</div>
+      <h1 class="sec-title">Conceitos Iniciais</h1>
+      <p class="sec-desc">Bases tributárias e financeiras necessárias para conduzir um estudo de viabilidade com rigor técnico.</p>
+    </div>
+
+    <h2 class="sub">Regime Tributário</h2>
+    <p class="prose">O regime tributário adotado por uma empresa exerce influência direta na análise de viabilidade econômica de um projeto, especialmente no cálculo do <strong>WACC</strong>. O regime define como os tributos serão apurados — se sobre o lucro ou sobre a receita — impactando o lucro líquido, o fluxo de caixa e o benefício fiscal gerado.</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">🔵</div>
+        <div class="card-title">Simples Nacional</div>
+        <div class="card-body">Tributos unificados em uma única guia. Base = receita bruta. Imposto devido mesmo com baixo lucro. Ideal para micro e pequenas empresas.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🟡</div>
+        <div class="card-title">Lucro Presumido</div>
+        <div class="card-body">IRPJ e CSLL calculados sobre margem presumida pelo governo. Vantajoso se margem real > presumida. Risco: pagar mais imposto se margem real for menor.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🟢</div>
+        <div class="card-title">Lucro Real</div>
+        <div class="card-body">Tributos sobre lucro efetivamente apurado. Obrigatório para empresas de maior porte. Maior precisão, mais controle contábil exigido.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚖️</div>
+        <div class="card-title">Como Escolher?</div>
+        <div class="card-body">Considerar: porte da empresa, margem de lucro, estrutura de custos e planejamento estratégico. Impacta diretamente o desempenho financeiro.</div>
+      </div>
+    </div>
+
+    <h2 class="sub">WACC — Custo Médio Ponderado de Capital</h2>
+    <p class="prose">O WACC representa a taxa mínima de retorno que um projeto precisa gerar para remunerar adequadamente todas as fontes de capital utilizadas — recursos próprios e de terceiros.</p>
+
+    <table class="styled-table">
+      <thead><tr><th>Componente</th><th>Descrição</th><th>Fonte de Dados</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge badge-blue">Taxa Livre de Risco</span></td><td>Retorno de investimento sem risco de inadimplência</td><td>Tesouro Selic / IPCA</td></tr>
+        <tr><td><span class="badge badge-blue">Beta Setorial</span></td><td>Grau de risco do setor em relação ao mercado</td><td>Damodaran / CVM</td></tr>
+        <tr><td><span class="badge badge-blue">Prêmio de Risco</span></td><td>Retorno extra exigido por assumir risco de mercado</td><td>Retorno mercado − Rf</td></tr>
+        <tr><td><span class="badge badge-blue">Custo da Dívida</span></td><td>Taxa de juros cobrada pela instituição financeira</td><td>Contrato bancário / BCB</td></tr>
+        <tr><td><span class="badge badge-blue">Alíquota de IR</span></td><td>Percentual de imposto sobre a base de cálculo</td><td>Regime tributário vigente</td></tr>
+      </tbody>
+    </table>
+
+    <div class="formula">Ke = Taxa Livre de Risco + (β × Prêmio de Risco de Mercado)</div>
+    <p class="prose" style="text-align:center;font-size:12px;color:var(--text-muted);">Modelo CAPM — Custo de Capital Próprio</p>
+  </section>
+
+  <!-- ── INVESTIMENTOS ── -->
+  <section id="section-investimentos" class="section">
+    <div class="sec-header">
+      <div class="sec-tag">02 — Estrutura</div>
+      <h1 class="sec-title">Investimentos Iniciais e Gastos Fixos</h1>
+      <p class="sec-desc">Identificação e mensuração dos desembolsos necessários antes do início das operações e dos custos fixos do negócio.</p>
+    </div>
+
+    <div class="card-grid card-grid-3">
+      <div class="card">
+        <div class="card-icon">🔧</div>
+        <div class="card-title">Investimento em Ativo</div>
+        <div class="card-body">Aquisição de bens destinados ao uso nas operações. Ocorre uma única vez. Ex: máquinas, móveis, equipamentos, veículos.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📋</div>
+        <div class="card-title">Gasto Pré-Operacional</div>
+        <div class="card-body">Despesas antes do início efetivo das atividades. Registro, consultoria, alvará, treinamentos. Quantidade = 1.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📅</div>
+        <div class="card-title">Gasto Fixo</div>
+        <div class="card-body">Despesas recorrentes que não variam com as vendas. Aluguel, internet, energia. Quantidade = vezes no ano (ex: 12).</div>
+      </div>
+    </div>
+
+    <h2 class="sub">Regra da Quantidade</h2>
+    <div class="info-box">
+      <div class="info-title">💡 Ponto crítico</div>
+      Quantidade = número de vezes que o gasto ocorre no ano. Mensal = 12, trimestral = 4, semestral = 2, único = 1. O campo "Valor Final" é calculado automaticamente: Preço × Quantidade.
+    </div>
+
+    <table class="styled-table">
+      <thead><tr><th>Exemplo</th><th>Tipo</th><th>Preço Unit.</th><th>Quantidade</th><th>Valor Final</th></tr></thead>
+      <tbody>
+        <tr><td>Energia Elétrica</td><td><span class="badge badge-blue">Gasto Fixo</span></td><td>R$ 300</td><td>12</td><td><strong>R$ 3.600</strong></td></tr>
+        <tr><td>Geladeira Industrial</td><td><span class="badge badge-gold">Ativo</span></td><td>R$ 5.000</td><td>3</td><td><strong>R$ 15.000</strong></td></tr>
+        <tr><td>Consultoria Contábil</td><td><span class="badge badge-green">Pré-operacional</span></td><td>R$ 2.000</td><td>1</td><td><strong>R$ 2.000</strong></td></tr>
+        <tr><td>Social Media</td><td><span class="badge badge-blue">Gasto Fixo</span></td><td>R$ 3.000</td><td>12</td><td><strong>R$ 36.000</strong></td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="sub">Encargos e Pessoal</h2>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-title">Salário</div>
+        <div class="card-body">Remuneração mensal, horária ou comissionada. Custo fixo ou semivariável. Impacta diretamente o fluxo de caixa.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Encargos Salariais</div>
+        <div class="card-body">INSS patronal, FGTS, 13º, férias + 1/3, provisões rescisórias. Podem representar 60–80% sobre o salário base.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Benefícios</div>
+        <div class="card-body">VT, VA/VR, plano de saúde, seguro de vida, PLR. Alguns obrigatórios por convenção coletiva. Incorporar ao custo total de pessoal.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Custo Total do Funcionário</div>
+        <div class="card-body">Salário + encargos + benefícios. Nunca considerar apenas o salário nominal na análise financeira.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FINANCIAMENTO ── -->
+  <section id="section-financiamento" class="section">
+    <div class="sec-header">
+      <div class="sec-tag">03 — Capital</div>
+      <h1 class="sec-title">Financiamento: Price vs SAC</h1>
+      <p class="sec-desc">Simulação de como será o pagamento de um empréstimo ao longo do tempo utilizando os dois principais sistemas de amortização.</p>
+    </div>
+
+    <div class="compare-grid">
+      <div class="compare-card price">
+        <div class="cc-title">Sistema PRICE</div>
+        <div class="cc-row"><span class="cc-label">Parcelas</span><span class="cc-val">Fixas</span></div>
+        <div class="cc-row"><span class="cc-label">Amortização</span><span class="cc-val">Crescente</span></div>
+        <div class="cc-row"><span class="cc-label">Juros</span><span class="cc-val">Decrescentes</span></div>
+        <div class="cc-row"><span class="cc-label">Total de Juros</span><span class="cc-val">Maior</span></div>
+        <div class="cc-row"><span class="cc-label">Previsibilidade</span><span class="cc-val">Alta</span></div>
+        <div class="cc-row"><span class="cc-label">Ideal para</span><span class="cc-val">Negócios iniciantes</span></div>
+      </div>
+      <div class="compare-card sac">
+        <div class="cc-title">Sistema SAC</div>
+        <div class="cc-row"><span class="cc-label">Parcelas</span><span class="cc-val">Decrescentes</span></div>
+        <div class="cc-row"><span class="cc-label">Amortização</span><span class="cc-val">Constante</span></div>
+        <div class="cc-row"><span class="cc-label">Juros</span><span class="cc-val">Caem mais rápido</span></div>
+        <div class="cc-row"><span class="cc-label">Total de Juros</span><span class="cc-val">Menor</span></div>
+        <div class="cc-row"><span class="cc-label">Previsibilidade</span><span class="cc-val">Média</span></div>
+        <div class="cc-row"><span class="cc-label">Ideal para</span><span class="cc-val">Boa geração de caixa</span></div>
+      </div>
+    </div>
+
+    <h2 class="sub">Conversão de Taxa: Anual → Mensal</h2>
+    <div class="warn-box">
+      ⚠️ <strong>Nunca divida a taxa anual por 12</strong> — esse cálculo gera erro. Use sempre a fórmula de equivalência de taxas composta.
+    </div>
+    <div class="formula">Taxa Mensal = (1 + Taxa Anual)^(1/12) − 1</div>
+    <p class="prose" style="text-align:center;font-size:13px;color:var(--text-muted);">Exemplo: 8,4% a.a. → (1,084)^(1/12) − 1 = <strong>0,674% a.m.</strong></p>
+
+    <h2 class="sub">Carência</h2>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-title">Quando Solicitar</div>
+        <div class="card-body">Negócio sendo construído ou montado. Equipamentos com demora para chegar. Cliente precisa de tempo para gerar caixa antes de pagar.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Atenção!</div>
+        <div class="card-body">Carência não é dinheiro grátis. Juros continuam correndo sobre o saldo devedor. Pode fazer o saldo aumentar antes de começar a pagar.</div>
+      </div>
+    </div>
+
+    <h2 class="sub">Taxas de Referência (2025)</h2>
+    <table class="styled-table">
+      <thead><tr><th>Linha de Crédito</th><th>Taxa Típica (a.m.)</th><th>Observação</th></tr></thead>
+      <tbody>
+        <tr><td>BNDES</td><td><span class="badge badge-green">0,5% – 1,0%</span></td><td>Taxas subsidiadas para setores prioritários</td></tr>
+        <tr><td>FNE / BNB (Nordeste)</td><td><span class="badge badge-green">0,5% – 0,9%</span></td><td>Empreendimentos na Região Nordeste</td></tr>
+        <tr><td>Banco Comercial (PJ)</td><td><span class="badge badge-gold">1,5% – 3,5%</span></td><td>Crédito empresarial geral</td></tr>
+        <tr><td>Microcrédito</td><td><span class="badge badge-red">2,0% – 4,0%</span></td><td>Para MEI e microempresas</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── GASTOS VARIÁVEIS ── -->
+  <section id="section-gastos" class="section">
+    <div class="sec-header">
+      <div class="sec-tag">04 — Custos</div>
+      <h1 class="sec-title">Gastos Variáveis</h1>
+      <p class="sec-desc">Despesas que oscilam de acordo com a demanda. Quanto maior a atividade do negócio, maiores esses custos.</p>
+    </div>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">👷</div>
+        <div class="card-title">Mão de Obra Variável</div>
+        <div class="card-body">Remuneração vinculada ao volume de produção/vendas. Comissões, pagamento por peça, temporários. Diferente do salário fixo.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🚚</div>
+        <div class="card-title">Frete e Aquisição</div>
+        <div class="card-body">Custo de comprar e transportar mercadorias até a empresa. Aumenta com o volume de compras. Impacta diretamente o preço de venda.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">💳</div>
+        <div class="card-title">Taxa de Maquineta</div>
+        <div class="card-body">Percentual cobrado sobre cada venda via cartão. Varia por tipo (débito, crédito, parcelado) e condições do contrato.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🤝</div>
+        <div class="card-title">Comissão de Vendas</div>
+        <div class="card-body">Percentual do valor de venda pago ao vendedor. Só existe quando há venda. Calculada sobre faturamento ou margem.</div>
+      </div>
+    </div>
+
+    <h2 class="sub">Caso Prático: Boutique da Maria</h2>
+    <div class="info-box">
+      <div class="info-title">📍 Contexto</div>
+      Maria tem uma boutique em Salvador. Vende Blusa Social (R$45), Calça Jeans e Vestido de Festa. Usa Empresa de Cartão 1 (taxa 1% crédito). Vendedora com 5% de comissão. Frete incluso.
+    </div>
+    <table class="styled-table">
+      <thead><tr><th>Produto</th><th>Custo Aquisição</th><th>Comissão</th><th>Taxa Cartão</th><th>Total Variável</th></tr></thead>
+      <tbody>
+        <tr><td>Blusa Social</td><td>R$ 30,00</td><td>5%</td><td>1%</td><td>R$ 30 + 6% PV</td></tr>
+        <tr><td>Calça Jeans</td><td>R$ 50,00</td><td>5%</td><td>1%</td><td>R$ 50 + 6% PV</td></tr>
+        <tr><td>Vestido de Festa</td><td>R$ 90,00</td><td>5%</td><td>1%</td><td>R$ 90 + 6% PV</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── PRECIFICAÇÃO ── -->
+  <section id="section-precificacao" class="section">
+    <div class="sec-header">
+      <div class="sec-tag">05 — Precificação</div>
+      <h1 class="sec-title">Metodologias de Precificação</h1>
+      <p class="sec-desc">Quatro métodos disponíveis na planilha para formar preços sustentáveis e estrategicamente alinhados ao negócio.</p>
+    </div>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">✖️</div>
+        <div class="card-title">Markup</div>
+        <div class="card-body">Multiplicador aplicado ao custo. Simples e amplamente utilizado. Índice > 1 (ex: 1,5 = preço 50% acima do custo). Índice no campo como número.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <div class="card-title">Margem de Contribuição</div>
+        <div class="card-body">Define quanto deve "sobrar" após pagar custos variáveis. Parte da margem desejada. Índice em decimal: 30% → 0,30.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔒</div>
+        <div class="card-title">Preço Fixo (Manual)</div>
+        <div class="card-body">Preço já definido pelo mercado ou pelo cliente. A planilha calcula a margem que esse preço gera. Índice = valor em R$.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🎯</div>
+        <div class="card-title">JR Precification</div>
+        <div class="card-body">Metodologia proprietária. Determina o preço ideal para alcançar uma meta de market share usando dados da aba Demanda JR.</div>
+      </div>
+    </div>
+
+    <h2 class="sub">Fórmulas</h2>
+    <div class="formula">Markup = 1 / (1 − D − T − L)</div>
+    <div class="formula">Preço de Venda = Custos Variáveis / (1 − MC%)</div>
+    <div class="formula">MC(%) = (Preço de Venda − Custos Variáveis) / Preço de Venda</div>
+
+    <h2 class="sub">GAP Concorrente & Margem Real</h2>
+    <table class="styled-table">
+      <thead><tr><th>Resultado do GAP</th><th>Interpretação</th><th>Ação Recomendada</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge badge-green">Gap negativo (−18%)</span></td><td>Preço mais barato que o concorrente</td><td>Verificar se a margem real cobre os gastos fixos</td></tr>
+        <tr><td><span class="badge badge-blue">Gap = 0%</span></td><td>Preço alinhado ao concorrente</td><td>Diferenciar em outros atributos</td></tr>
+        <tr><td><span class="badge badge-red">Gap positivo (+27%)</span></td><td>Preço mais caro que o concorrente</td><td>Avaliar se há diferencial que justifique</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="sub">JR Precification — Peso Demanda</h2>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-title">🔻 Peso Negativo</div>
+        <div class="card-body">Produto relativamente caro para a meta de market share. A fórmula ajusta o preço para baixo, atraindo mais clientes e ampliando o market share.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔺 Peso Positivo</div>
+        <div class="card-body">Para atingir o objetivo estratégico, o modelo eleva o preço. Reduz a demanda, diminuindo o market share. Útil em estratégias de premium.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── DRE ── -->
+  <section id="section-dre" class="section">
+    <div class="sec-header">
+      <div class="sec-tag">06 — Resultado</div>
+      <h1 class="sec-title">Demonstrativo do Resultado do Exercício</h1>
+      <p class="sec-desc">A DRE reúne faturamento, custos, despesas e lucro líquido. Ponto central da análise de viabilidade.</p>
+    </div>
+
+    <div class="dre-flow">
+      <div class="dre-row dre-highlight">
+        <span class="op plus">+</span>
+        <span class="dre-label">Receita Bruta</span>
+        <span class="dre-desc">Faturamento total antes de qualquer dedução</span>
+      </div>
+      <div class="dre-row">
+        <span class="op minus">−</span>
+        <span class="dre-label">Deduções</span>
+        <span class="dre-desc">ICMS, PIS/COFINS, ISS, devoluções, abatimentos</span>
+      </div>
+      <div class="dre-row dre-highlight">
+        <span class="op plus">+</span>
+        <span class="dre-label">Receita Líquida</span>
+        <span class="dre-desc">Base para apuração de custos e despesas</span>
+      </div>
+      <div class="dre-row">
+        <span class="op minus">−</span>
+        <span class="dre-label">Gastos Variáveis</span>
+        <span class="dre-desc">CMV, comissões, taxas operacionais (% da RL)</span>
+      </div>
+      <div class="dre-row dre-highlight">
+        <span class="op plus">+</span>
+        <span class="dre-label">Margem de Contribuição</span>
+        <span class="dre-desc">Quanto sobra para cobrir os fixos</span>
+      </div>
+      <div class="dre-row">
+        <span class="op minus">−</span>
+        <span class="dre-label">Gastos Fixos</span>
+        <span class="dre-desc">Aluguel, salários administrativos, seguros</span>
+      </div>
+      <div class="dre-row dre-highlight">
+        <span class="op plus">+</span>
+        <span class="dre-label">EBITDA</span>
+        <span class="dre-desc">Lucro operacional antes de juros, IR, depr. e amort.</span>
+      </div>
+      <div class="dre-row">
+        <span class="op minus">−</span>
+        <span class="dre-label">Depreciação & Amortização</span>
+        <span class="dre-desc">Perda de valor de ativos tangíveis e intangíveis</span>
+      </div>
+      <div class="dre-row">
+        <span class="op minus">−</span>
+        <span class="dre-label">Resultado Financeiro</span>
+        <span class="dre-desc">Juros de empréstimos, rendimentos de aplicações</span>
+      </div>
+      <div class="dre-row dre-highlight">
+        <span class="op plus">+</span>
+        <span class="dre-label">Lucro Antes dos Impostos (EBT)</span>
+        <span class="dre-desc">Eficácia da gestão financeira antes da tributação</span>
+      </div>
+      <div class="dre-row">
+        <span class="op minus">−</span>
+        <span class="dre-label">Imposto de Renda (IR + CSLL)</span>
+        <span class="dre-desc">Varia conforme o regime tributário adotado</span>
+      </div>
+      <div class="dre-row" style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:8px;">
+        <span class="op plus" style="color:var(--green)">+</span>
+        <span class="dre-label" style="color:var(--green);font-weight:600;">Lucro Líquido</span>
+        <span class="dre-desc">Resultado final disponível para sócios ou reinvestimento</span>
+      </div>
+    </div>
+
+    <h2 class="sub">Margens Relevantes</h2>
+    <div class="formula">Margem EBITDA = EBITDA / Receita Líquida × 100</div>
+    <div class="formula">Margem Líquida = Lucro Líquido / Receita Líquida × 100</div>
+  </section>
+
+  <!-- ── INDICADORES ── -->
+  <section id="section-indicadores" class="section">
+    <div class="sec-header">
+      <div class="sec-tag">07 — Análise</div>
+      <h1 class="sec-title">Indicadores Financeiros</h1>
+      <p class="sec-desc">Os três pilares da decisão de investimento: VPL, TIR e Payback.</p>
+    </div>
+
+    <div class="indicator-grid">
+      <div class="ind-card vpl">
+        <div class="ind-icon">💚</div>
+        <div class="ind-name">VPL</div>
+        <div class="ind-rule">Valor presente de todos os fluxos de caixa futuros descontados pelo WACC menos o investimento inicial.<br><br><strong>VPL &gt; 0</strong> = Projeto viável<br><strong>VPL = 0</strong> = Ponto de equilíbrio<br><strong>VPL &lt; 0</strong> = Não viável</div>
+        <div class="ind-viavel badge badge-green">Meta: VPL &gt; 0</div>
+      </div>
+      <div class="ind-card tir">
+        <div class="ind-icon">📉</div>
+        <div class="ind-name">TIR</div>
+        <div class="ind-rule">Taxa de desconto que zera o VPL. Representa a rentabilidade implícita do projeto.<br><br><strong>TIR &gt; WACC</strong> = Viável<br><strong>TIR = WACC</strong> = Equilíbrio<br><strong>TIR &lt; WACC</strong> = Não viável</div>
+        <div class="ind-viavel badge badge-blue">Meta: TIR &gt; WACC</div>
+      </div>
+      <div class="ind-card pb">
+        <div class="ind-icon">⏱️</div>
+        <div class="ind-name">Payback</div>
+        <div class="ind-rule">Período para que os fluxos de caixa acumulados recuperem o investimento inicial. Simples ou descontado.<br><br><strong>&lt; 5 anos</strong> = Aceitável<br><strong>≥ 5 anos</strong> = Reavaliação</div>
+        <div class="ind-viavel badge badge-gold">Meta: &lt; 5 anos</div>
+      </div>
+    </div>
+
+    <h2 class="sub">Simulação de Cenários — Mínimo Viável</h2>
+    <p class="prose">O Teste do Mínimo Viável encontra o volume mínimo de vendas para que o projeto seja financeiramente viável. Aumente gradualmente a venda mínima até que VPL, TIR e Payback fiquem todos no verde.</p>
+
+    <div class="scenario-box">
+      <div class="scenario-tabs">
+        <div class="stab pessimista" onclick="setScenario('pessimista')">📉 Pessimista</div>
+        <div class="stab base active" onclick="setScenario('base')">📊 Base</div>
+        <div class="stab otimista" onclick="setScenario('otimista')">📈 Otimista</div>
+      </div>
+
+      <div id="sc-pessimista" class="scenario-content">
+        <div class="scenario-kpi-grid">
+          <div class="skpi neg"><div class="sk-label">Venda Anual</div><div class="sk-val">R$ 350k</div></div>
+          <div class="skpi neg"><div class="sk-label">VPL</div><div class="sk-val">−R$ 20k</div></div>
+          <div class="skpi neg"><div class="sk-label">TIR</div><div class="sk-val">12%</div></div>
+          <div class="skpi neg"><div class="sk-label">Payback</div><div class="sk-val">6 anos</div></div>
+          <div class="skpi neg"><div class="sk-label">vs WACC (15%)</div><div class="sk-val">−3pp</div></div>
+          <div class="skpi neg"><div class="sk-label">Status</div><div class="sk-val">❌ Inviável</div></div>
+        </div>
+      </div>
+
+      <div id="sc-base" class="scenario-content active">
+        <div class="scenario-kpi-grid">
+          <div class="skpi neu"><div class="sk-label">Venda Anual</div><div class="sk-val">R$ 450k</div></div>
+          <div class="skpi pos"><div class="sk-label">VPL</div><div class="sk-val">+R$ 15k</div></div>
+          <div class="skpi pos"><div class="sk-label">TIR</div><div class="sk-val">16%</div></div>
+          <div class="skpi pos"><div class="sk-label">Payback</div><div class="sk-val">4,5 anos</div></div>
+          <div class="skpi pos"><div class="sk-label">vs WACC (15%)</div><div class="sk-val">+1pp</div></div>
+          <div class="skpi pos"><div class="sk-label">Status</div><div class="sk-val">✅ Viável</div></div>
+        </div>
+      </div>
+
+      <div id="sc-otimista" class="scenario-content">
+        <div class="scenario-kpi-grid">
+          <div class="skpi pos"><div class="sk-label">Venda Anual</div><div class="sk-val">R$ 680k</div></div>
+          <div class="skpi pos"><div class="sk-label">VPL</div><div class="sk-val">+R$ 85k</div></div>
+          <div class="skpi pos"><div class="sk-label">TIR</div><div class="sk-val">24%</div></div>
+          <div class="skpi pos"><div class="sk-label">Payback</div><div class="sk-val">2,8 anos</div></div>
+          <div class="skpi pos"><div class="sk-label">vs WACC (15%)</div><div class="sk-val">+9pp</div></div>
+          <div class="skpi pos"><div class="sk-label">Status</div><div class="sk-val">🚀 Excelente</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="warn-box">
+      ⚠️ TIR muito próxima do WACC (ex: 15,1% vs 15%) está tecnicamente viável, mas sem margem de segurança. Busque pelo menos 2–3pp acima do WACC.
+    </div>
+  </section>
+
+  <!-- ── PREMISSAS ── -->
+  <section id="section-premissas" class="section">
+    <div class="sec-header">
+      <div class="sec-tag">08 — Projeção</div>
+      <h1 class="sec-title">Premissas de Projeção</h1>
+      <p class="sec-desc">Hipóteses quantitativas que definem o comportamento futuro do negócio. A qualidade das projeções depende da consistência técnica dessas premissas.</p>
+    </div>
+
+    <h2 class="sub">Campos da Aba Principal</h2>
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Crescimento da Receita Bruta (%)</div>
+          <div class="step-text">Taxa de crescimento setorial. Fontes: IBGE (contas nacionais), SEBRAE, Banco Central, associações setoriais. Use múltiplas fontes e calcule a média.</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Deduções (% Rec. Bruta)</div>
+          <div class="step-text">ICMS + PIS/COFINS + ISS + Devoluções. Varia conforme regime tributário. Consultar SEFAZ estadual, Receita Federal e contador do cliente.</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Imposto de Renda (% Lucro)</div>
+          <div class="step-text">IRPJ + CSLL sobre o lucro (não sobre receita!). Padrão Lucro Presumido: 15% IRPJ + 9% CSLL. Confirmar com contador.</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">Prazos Operacionais</div>
+          <div class="step-text">Prazo médio de recebimento, estoque e pagamento. Determinam o ciclo financeiro e a Necessidade de Capital de Giro (NCG).</div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="sub">Exemplos de Premissas por Segmento</h2>
+    <table class="styled-table">
+      <thead><tr><th>Tipo de Premissa</th><th>Segmento Ideal</th><th>Variável Central</th></tr></thead>
+      <tbody>
+        <tr><td>Taxa de Ocupação</td><td>Hotelaria, Coworking, Imóveis</td><td>% de quartos/espaços ocupados</td></tr>
+        <tr><td>Market Share</td><td>Varejo, E-commerce, Franquias</td><td>% do mercado capturado</td></tr>
+        <tr><td>Sazonalidade</td><td>Turismo, Alimentos, Moda</td><td>Variação mensal das vendas</td></tr>
+        <tr><td>Capacidade Produtiva</td><td>Indústria, Alimentação</td><td>Unidades produzidas/dia</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── NCG ── -->
+  <section id="section-ncg" class="section">
+    <div class="sec-header">
+      <div class="sec-tag">09 — Liquidez</div>
+      <h1 class="sec-title">Fluxo de Caixa & NCG</h1>
+      <p class="sec-desc">A DFC evidencia entradas e saídas efetivas de caixa. A NCG mede o capital necessário para financiar o ciclo operacional.</p>
+    </div>
+
+    <h2 class="sub">Demonstração do Fluxo de Caixa (DFC)</h2>
+    <div class="card-grid card-grid-3">
+      <div class="card">
+        <div class="card-icon">⚙️</div>
+        <div class="card-title">Atividades Operacionais</div>
+        <div class="card-body">Relacionadas ao core business da empresa. Recebimentos de clientes, pagamentos de fornecedores, despesas operacionais.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🏗️</div>
+        <div class="card-title">Atividades de Investimento</div>
+        <div class="card-body">Aquisição ou venda de ativos de longo prazo. Compra de máquinas, equipamentos, imóveis.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🏦</div>
+        <div class="card-title">Atividades de Financiamento</div>
+        <div class="card-body">Captação ou amortização de recursos. Empréstimos, pagamento de parcelas, distribuição de dividendos.</div>
+      </div>
+    </div>
+
+    <h2 class="sub">Necessidade de Capital de Giro (NCG)</h2>
+    <div class="formula">NCG = Contas a Receber + Estoque − Contas a Pagar</div>
+
+    <table class="styled-table">
+      <thead><tr><th>Resultado</th><th>Interpretação</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge badge-red">NCG Positiva</span></td><td>Empresa precisa de capital adicional. Quanto maior, maior a exposição financeira.</td></tr>
+        <tr><td><span class="badge badge-green">NCG Negativa</span></td><td>Fornecedores estão financiando parte do ciclo. Situação favorável de liquidez.</td></tr>
+        <tr><td><span class="badge badge-gold">Variação +</span></td><td>Necessidade cresceu: aumento de prazo para clientes, estoque maior ou menor prazo com fornecedores.</td></tr>
+        <tr><td><span class="badge badge-green">Variação −</span></td><td>Necessidade diminuiu: melhor gestão do ciclo ou melhoria nas condições com fornecedores.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="warn-box">
+      ⚠️ Não altere manualmente as células de NCG e Variação da NCG na planilha — elas contêm fórmulas automáticas.
+    </div>
+  </section>
+
+  <!-- ── CALCULADORAS ── -->
+  <section id="section-calculadoras" class="section">
+    <div class="sec-header">
+      <div class="sec-tag">⚙️ Ferramentas</div>
+      <h1 class="sec-title">Calculadoras Interativas</h1>
+      <p class="sec-desc">Ferramentas para cálculos rápidos durante o preenchimento do estudo de viabilidade.</p>
+    </div>
+
+    <!-- WACC CALC -->
+    <div class="calc-box">
+      <h4>📐 Calculadora WACC (Custo Médio Ponderado de Capital)</h4>
+      <div class="calc-grid">
+        <div class="calc-field">
+          <label>Taxa Livre de Risco (%)</label>
+          <input type="number" id="w-rf" value="10.75" step="0.1" oninput="calcWACC()">
+        </div>
+        <div class="calc-field">
+          <label>Beta Setorial</label>
+          <input type="number" id="w-beta" value="1.2" step="0.05" oninput="calcWACC()">
+        </div>
+        <div class="calc-field">
+          <label>Prêmio de Risco de Mercado (%)</label>
+          <input type="number" id="w-prm" value="5.5" step="0.1" oninput="calcWACC()">
+        </div>
+        <div class="calc-field">
+          <label>Custo da Dívida Bruta (%)</label>
+          <input type="number" id="w-kd" value="14" step="0.5" oninput="calcWACC()">
+        </div>
+        <div class="calc-field">
+          <label>Alíquota de IR (%)</label>
+          <input type="number" id="w-ir" value="27.5" step="0.5" oninput="calcWACC()">
+        </div>
+        <div class="calc-field">
+          <label>% Capital Próprio (0–100)</label>
+          <input type="number" id="w-pe" value="60" step="5" min="0" max="100" oninput="calcWACC()">
+        </div>
+      </div>
+      <div class="calc-result">
+        <div>
+          <div class="cr-label">Ke (custo capital próprio)</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-top:4px;" id="w-ke-display">—</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="cr-label">WACC</div>
+          <div class="cr-value" id="w-wacc">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MARKUP CALC -->
+    <div class="markup-calc">
+      <h4>🏷️ Calculadora de Precificação</h4>
+      <div class="markup-row">
+        <div class="mf">
+          <label>Custo de Aquisição (R$)</label>
+          <input type="number" id="m-custo" value="50" step="1" oninput="calcMarkup()">
+        </div>
+        <div class="mf">
+          <label>Despesas Fixas Rateadas (%)</label>
+          <input type="number" id="m-desp" value="15" step="0.5" oninput="calcMarkup()">
+        </div>
+        <div class="mf">
+          <label>Tributos sobre Vendas (%)</label>
+          <input type="number" id="m-trib" value="8" step="0.5" oninput="calcMarkup()">
+        </div>
+        <div class="mf">
+          <label>Lucro Desejado (%)</label>
+          <input type="number" id="m-lucro" value="20" step="1" oninput="calcMarkup()">
+        </div>
+      </div>
+      <div class="markup-result-grid">
+        <div class="mr-cell">
+          <div class="mr-label">Índice Markup</div>
+          <div class="mr-val" id="m-idx">—</div>
+        </div>
+        <div class="mr-cell">
+          <div class="mr-label">Preço de Venda</div>
+          <div class="mr-val" id="m-preco">—</div>
+        </div>
+        <div class="mr-cell">
+          <div class="mr-label">Margem Contribuição</div>
+          <div class="mr-val" id="m-mc">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAXA MENSAL CALC -->
+    <div class="calc-box">
+      <h4>🏦 Conversor de Taxa: Anual → Mensal</h4>
+      <div class="calc-grid">
+        <div class="calc-field">
+          <label>Taxa Anual (%)</label>
+          <input type="number" id="t-anual" value="8.4" step="0.1" oninput="calcTaxa()">
+        </div>
+        <div class="calc-field">
+          <label>Número de Meses</label>
+          <input type="number" id="t-meses" value="12" step="1" oninput="calcTaxa()">
+        </div>
+      </div>
+      <div class="calc-result">
+        <div>
+          <div class="cr-label">Taxa Mensal Equivalente</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">(1 + i)^(1/12) − 1</div>
+        </div>
+        <div style="text-align:right">
+          <div class="cr-value" id="t-mensal">—</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CHECKLIST ── -->
+  <section id="section-checklist" class="section">
+    <div class="sec-header">
+      <div class="sec-tag">✅ Qualidade</div>
+      <h1 class="sec-title">Checklist do Consultor</h1>
+      <p class="sec-desc">Seis abas em ordem de execução. Marque cada item conforme avança. Todos devem estar concluídos antes de entregar o estudo ao cliente.</p>
+    </div>
+
+    <!-- TAB BAR -->
+    <div class="cl-tab-bar">
+      <div class="cl-tab active" data-tab="wacc" onclick="clSwitchTab('wacc')">
+        <span class="ct-icon">📐</span>
+        <span class="ct-label">Regime &amp;<br>WACC</span>
+        <span class="ct-pill" id="pill-wacc">0/7</span>
+      </div>
+      <div class="cl-tab" data-tab="invest" onclick="clSwitchTab('invest')">
+        <span class="ct-icon">💰</span>
+        <span class="ct-label">Invest. Iniciais<br>&amp; Gastos Fixos</span>
+        <span class="ct-pill" id="pill-invest">0/8</span>
+      </div>
+      <div class="cl-tab" data-tab="gastos" onclick="clSwitchTab('gastos')">
+        <span class="ct-icon">📦</span>
+        <span class="ct-label">Gastos Var.<br>&amp; Salários</span>
+        <span class="ct-pill" id="pill-gastos">0/11</span>
+      </div>
+      <div class="cl-tab" data-tab="financ" onclick="clSwitchTab('financ')">
+        <span class="ct-icon">🏦</span>
+        <span class="ct-label">Financia-<br>mento</span>
+        <span class="ct-pill" id="pill-financ">0/7</span>
+      </div>
+      <div class="cl-tab" data-tab="premis" onclick="clSwitchTab('premis')">
+        <span class="ct-icon">🎯</span>
+        <span class="ct-label">Premissas de<br>Projeção</span>
+        <span class="ct-pill" id="pill-premis">0/8</span>
+      </div>
+      <div class="cl-tab" data-tab="dre" onclick="clSwitchTab('dre')">
+        <span class="ct-icon">📊</span>
+        <span class="ct-label">DRE<br>Principal</span>
+        <span class="ct-pill" id="pill-dre">0/7</span>
+      </div>
+    </div>
+
+    <!-- ── PAINEL 1: REGIME + WACC ── -->
+    <div class="cl-panel active" id="clp-wacc">
+      <div class="cl-section-title">📐 Regime Tributário &amp; WACC</div>
+      <div class="cl-section-desc">Definir o regime e os parâmetros de custo de capital antes de qualquer projeção. Erros aqui comprometem toda a modelagem.</div>
+      <div class="cl-mini-bar-wrap"><div class="cl-mini-bar" id="bar-wacc"></div></div>
+      <div class="checklist" data-tab="wacc">
+        <div class="cl-item" onclick="toggleCheck(this,'wacc')"><div class="cl-check"></div><span class="cl-text">Regime tributário do cliente identificado e documentado (Simples, Presumido ou Real)</span><span class="cl-tag badge badge-red">Obrigatório</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'wacc')"><div class="cl-check"></div><span class="cl-text">Alíquota efetiva do regime confirmada com o contador ou Receita Federal</span><span class="cl-tag badge badge-red">Obrigatório</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'wacc')"><div class="cl-check"></div><span class="cl-text">Taxa livre de risco pesquisada no Tesouro Selic ou IPCA mais recente</span><span class="cl-tag badge badge-blue">Pesquisa</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'wacc')"><div class="cl-check"></div><span class="cl-text">Beta setorial levantado (fonte: Damodaran, CVM ou associação do setor)</span><span class="cl-tag badge badge-blue">Pesquisa</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'wacc')"><div class="cl-check"></div><span class="cl-text">Prêmio de risco de mercado definido (Retorno do mercado − Taxa livre de risco)</span><span class="cl-tag badge badge-blue">Cálculo</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'wacc')"><div class="cl-check"></div><span class="cl-text">Estrutura de capital definida: proporção capital próprio vs. dívida informada pelo cliente</span><span class="cl-tag badge badge-gold">Cliente</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'wacc')"><div class="cl-check"></div><span class="cl-text">WACC calculado e registrado como taxa de desconto do projeto (meta: TIR deve superar este valor)</span><span class="cl-tag badge badge-red">Obrigatório</span></div>
+      </div>
+    </div>
+
+    <!-- ── PAINEL 2: INVESTIMENTOS INICIAIS + GASTOS FIXOS ── -->
+    <div class="cl-panel" id="clp-invest">
+      <div class="cl-section-title">💰 Investimentos Iniciais &amp; Gastos Fixos</div>
+      <div class="cl-section-desc">Mapear todos os desembolsos antes da operação e os custos fixos recorrentes. O campo Quantidade é crítico — representa vezes no ano.</div>
+      <div class="cl-mini-bar-wrap"><div class="cl-mini-bar" id="bar-invest"></div></div>
+      <div class="checklist" data-tab="invest">
+        <div class="cl-item" onclick="toggleCheck(this,'invest')"><div class="cl-check"></div><span class="cl-text">Todos os ativos imobilizados listados com descrição clara, preço unitário e quantidade (compra única = 1)</span><span class="cl-tag badge badge-red">Obrigatório</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'invest')"><div class="cl-check"></div><span class="cl-text">Tipo do ativo selecionado para cada bem (Máquinas, Móveis, Veículos, TI, Instalações, Edifícios)</span><span class="cl-tag badge badge-blue">Planilha</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'invest')"><div class="cl-check"></div><span class="cl-text">Gastos pré-operacionais levantados: registro, alvarás, consultorias, reformas, treinamentos (quantidade = 1)</span><span class="cl-tag badge badge-red">Obrigatório</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'invest')"><div class="cl-check"></div><span class="cl-text">Preços de equipamentos pesquisados em fontes confiáveis (Machineseeker, FIPE, cotações diretas)</span><span class="cl-tag badge badge-blue">Pesquisa</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'invest')"><div class="cl-check"></div><span class="cl-text">Gastos fixos mensais levantados com quantidade = 12 (aluguel, energia, internet, contador)</span><span class="cl-tag badge badge-red">Obrigatório</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'invest')"><div class="cl-check"></div><span class="cl-text">Salários de todos os funcionários cadastrados como gasto fixo (salário bruto, sem encargos)</span><span class="cl-tag badge badge-red">Obrigatório</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'invest')"><div class="cl-check"></div><span class="cl-text">Encargos trabalhistas calculados sobre cada salário (INSS patronal, FGTS, 13º, férias + 1/3)</span><span class="cl-tag badge badge-gold">Cálculo</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'invest')"><div class="cl-check"></div><span class="cl-text">Benefícios salariais incluídos (VT, VA/VR, plano de saúde) e custo total por funcionário validado</span><span class="cl-tag badge badge-gold">Cliente</span></div>
+      </div>
+    </div>
+
+    <!-- ── PAINEL 3: GASTOS VARIÁVEIS + SALÁRIOS ── -->
+    <div class="cl-panel" id="clp-gastos">
+      <div class="cl-section-title">📦 Gastos Variáveis &amp; Salários</div>
+      <div class="cl-section-desc">Preencher na ordem: configurar maquineta → custos diretos → taxas → precificação. Nenhum #ERRO! deve existir ao avançar.</div>
+      <div class="cl-mini-bar-wrap"><div class="cl-mini-bar" id="bar-gastos"></div></div>
+      <div class="checklist" data-tab="gastos">
+        <div class="cl-item" onclick="toggleCheck(this,'gastos')"><div class="cl-check"></div><span class="cl-text">Empresa de maquineta selecionada no campo "EMPRESA UTILIZADA PARA PROJETAR" (nome idêntico à tabela)</span><span class="cl-tag badge badge-red">Primeiro passo</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'gastos')"><div class="cl-check"></div><span class="cl-text">Tabela de Taxas de Maquineta preenchida: operadora, modalidade (débito/crédito/parcelado) e percentual</span><span class="cl-tag badge badge-red">Obrigatório</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'gastos')"><div class="cl-check"></div><span class="cl-text">Todos os produtos e serviços do cliente cadastrados na aba (um produto por linha)</span><span class="cl-tag badge badge-red">Obrigatório</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'gastos')"><div class="cl-check"></div><span class="cl-text">Custo de aquisição unitário preenchido para todos os produtos de comércio/revenda</span><span class="cl-tag badge badge-red">Obrigatório</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'gastos')"><div class="cl-check"></div><span class="cl-text">Custo de frete por unidade calculado (total do frete ÷ unidades recebidas) e preenchido</span><span class="cl-tag badge badge-blue">Cálculo</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'gastos')"><div class="cl-check"></div><span class="cl-text">Mão de obra variável registrada apenas para remunerações vinculadas à produção/volume (não salário fixo)</span><span class="cl-tag badge badge-gold">Atenção</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'gastos')"><div class="cl-check"></div><span class="cl-text">Comissão de vendas (%) informada para cada produto — ou 0% se não houver</span><span class="cl-tag badge badge-blue">Planilha</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'gastos')"><div class="cl-check"></div><span class="cl-text">Preço do principal concorrente pesquisado e preenchido para todos os produtos (nunca deixar zerado)</span><span class="cl-tag badge badge-red">Obrigatório</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'gastos')"><div class="cl-check"></div><span class="cl-text">Metodologia de precificação selecionada para cada produto (Markup, MC%, Preço Fixo ou JR Precification)</span><span class="cl-tag badge badge-red">Obrigatório</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'gastos')"><div class="cl-check"></div><span class="cl-text">Índice de precificação preenchido no formato correto: Markup = número, MC = decimal (0,30), Preço Fixo = R$</span><span class="cl-tag badge badge-gold">Atenção</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'gastos')"><div class="cl-check"></div><span class="cl-text">Nenhum campo de Preço de Venda exibe #ERRO!, Margem Real revisada e preços aprovados pelo cliente</span><span class="cl-tag badge badge-red">Validação final</span></div>
+      </div>
+    </div>
+
+    <!-- ── PAINEL 4: FINANCIAMENTO ── -->
+    <div class="cl-panel" id="clp-financ">
+      <div class="cl-section-title">🏦 Financiamento</div>
+      <div class="cl-section-desc">Preencher somente se o cliente precisar de crédito. Usar taxa mensal equivalente — nunca divida a taxa anual por 12.</div>
+      <div class="cl-mini-bar-wrap"><div class="cl-mini-bar" id="bar-financ"></div></div>
+      <div class="checklist" data-tab="financ">
+        <div class="cl-item" onclick="toggleCheck(this,'financ')"><div class="cl-check"></div><span class="cl-text">Confirmado com o cliente se há necessidade de financiamento (se não houver, pular esta aba)</span><span class="cl-tag badge badge-gold">Cliente</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'financ')"><div class="cl-check"></div><span class="cl-text">Banco/instituição financeira identificado e nome registrado na planilha</span><span class="cl-tag badge badge-blue">Planilha</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'financ')"><div class="cl-check"></div><span class="cl-text">Valor do empréstimo calculado corretamente: investimentos totais − capital próprio disponível</span><span class="cl-tag badge badge-red">Cálculo</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'financ')"><div class="cl-check"></div><span class="cl-text">Sistema de amortização escolhido (PRICE ou SAC) conforme capacidade de caixa do cliente nos primeiros meses</span><span class="cl-tag badge badge-gold">Decisão</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'financ')"><div class="cl-check"></div><span class="cl-text">Taxa de juros mensal convertida corretamente da taxa anual usando (1 + i)^(1/12) − 1 (nunca ÷ 12)</span><span class="cl-tag badge badge-red">Obrigatório</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'financ')"><div class="cl-check"></div><span class="cl-text">Período de carência definido e impacto no saldo devedor explicado ao cliente (juros continuam correndo)</span><span class="cl-tag badge badge-gold">Cliente</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'financ')"><div class="cl-check"></div><span class="cl-text">Tabelas PRICE e SAC geradas sem erros: Ano 0 = valor do empréstimo; saldo devedor decrescente; último ano ≈ R$0</span><span class="cl-tag badge badge-red">Validação</span></div>
+      </div>
+    </div>
+
+    <!-- ── PAINEL 5: PREMISSAS ── -->
+    <div class="cl-panel" id="clp-premis">
+      <div class="cl-section-title">🎯 Premissas de Projeção</div>
+      <div class="cl-section-desc">Hipóteses quantitativas que alimentam a DRE e o Fluxo de Caixa. Documentar a fonte de cada premissa aumenta a credibilidade do estudo.</div>
+      <div class="cl-mini-bar-wrap"><div class="cl-mini-bar" id="bar-premis"></div></div>
+      <div class="checklist" data-tab="premis">
+        <div class="cl-item" onclick="toggleCheck(this,'premis')"><div class="cl-check"></div><span class="cl-text">Taxa de crescimento da Receita Bruta pesquisada em pelo menos 2 fontes setoriais (IBGE, SEBRAE, BCB, associações)</span><span class="cl-tag badge badge-blue">Pesquisa</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'premis')"><div class="cl-check"></div><span class="cl-text">Fonte do crescimento documentada no estudo com citação (ex: "IBGE, setor de comércio varejista, 2024")</span><span class="cl-tag badge badge-blue">Documentação</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'premis')"><div class="cl-check"></div><span class="cl-text">Deduções sobre Receita Bruta calculadas por componente: ICMS (SEFAZ) + PIS/COFINS + ISS + devoluções estimadas</span><span class="cl-tag badge badge-red">Obrigatório</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'premis')"><div class="cl-check"></div><span class="cl-text">Alíquota de IR e CSLL verificada na Receita Federal ou com o contador — não confundir com deduções sobre receita</span><span class="cl-tag badge badge-red">Obrigatório</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'premis')"><div class="cl-check"></div><span class="cl-text">Simples Nacional: alíquota preenchida se aplicável, ou campo zerado se outro regime</span><span class="cl-tag badge badge-gold">Condicional</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'premis')"><div class="cl-check"></div><span class="cl-text">Prazo médio de recebimento confirmado com o cliente (à vista = 0~2 dias; 30 dias; 60 dias etc.)</span><span class="cl-tag badge badge-gold">Cliente</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'premis')"><div class="cl-check"></div><span class="cl-text">Prazo médio de estoque compatível com o setor (varejo de moda: 45–90 dias; perecíveis: 1–15 dias)</span><span class="cl-tag badge badge-blue">Benchmark</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'premis')"><div class="cl-check"></div><span class="cl-text">Prazo médio de pagamento a fornecedores confirmado com o cliente e alinhado às condições negociadas</span><span class="cl-tag badge badge-gold">Cliente</span></div>
+      </div>
+    </div>
+
+    <!-- ── PAINEL 6: DRE PRINCIPAL ── -->
+    <div class="cl-panel" id="clp-dre">
+      <div class="cl-section-title">📊 DRE Principal</div>
+      <div class="cl-section-desc">Verificação final da DRE e dos indicadores. O estudo só está pronto para o cliente após todos os itens abaixo confirmados.</div>
+      <div class="cl-mini-bar-wrap"><div class="cl-mini-bar" id="bar-dre"></div></div>
+      <div class="checklist" data-tab="dre">
+        <div class="cl-item" onclick="toggleCheck(this,'dre')"><div class="cl-check"></div><span class="cl-text">Receita Bruta do Ano 1 validada com o cliente: reflete a capacidade real de vendas no primeiro ano de operação</span><span class="cl-tag badge badge-red">Validação</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'dre')"><div class="cl-check"></div><span class="cl-text">Deduções e gastos variáveis alimentados automaticamente pelas premissas — nenhum campo com #ERRO!</span><span class="cl-tag badge badge-blue">Planilha</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'dre')"><div class="cl-check"></div><span class="cl-text">EBITDA positivo em pelo menos um dos cenários projetados; Margem EBITDA coerente com benchmarks do setor</span><span class="cl-tag badge badge-red">Análise</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'dre')"><div class="cl-check"></div><span class="cl-text">VPL calculado e positivo no cenário base — se negativo, revisar premissas e volumes antes de concluir</span><span class="cl-tag badge badge-red">Indicador</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'dre')"><div class="cl-check"></div><span class="cl-text">TIR calculada e superior ao WACC no cenário base (margem mínima recomendada: 2–3 pontos percentuais acima)</span><span class="cl-tag badge badge-red">Indicador</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'dre')"><div class="cl-check"></div><span class="cl-text">Payback inferior a 5 anos no cenário base; Mínimo Viável apresentado e validado como piso de vendas com o cliente</span><span class="cl-tag badge badge-red">Indicador</span></div>
+        <div class="cl-item" onclick="toggleCheck(this,'dre')"><div class="cl-check"></div><span class="cl-text">Três cenários (pessimista, base e otimista) documentados e apresentados ao cliente com comentários interpretativos</span><span class="cl-tag badge badge-gold">Entrega</span></div>
+      </div>
+    </div>
+
+    <!-- OVERALL PROGRESS -->
+    <div class="cl-overall">
+      <div class="cl-overall-top">
+        <div>
+          <div class="cl-overall-label">Progresso geral do estudo</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:3px;" id="cl-count-label">0 de 48 itens concluídos</div>
+        </div>
+        <div class="cl-overall-nums">
+          <span class="cl-overall-pct" id="cl-pct">0</span>
+          <span class="cl-overall-of">%</span>
+        </div>
+      </div>
+      <div class="cl-overall-bar-wrap">
+        <div class="cl-overall-bar" id="cl-bar"></div>
+      </div>
+      <div class="cl-tab-pills">
+        <div class="cl-tab-pill" id="cpill-wacc"><span class="pill-dot"></span>Regime + WACC</div>
+        <div class="cl-tab-pill" id="cpill-invest"><span class="pill-dot"></span>Invest. Iniciais</div>
+        <div class="cl-tab-pill" id="cpill-gastos"><span class="pill-dot"></span>Gastos Variáveis</div>
+        <div class="cl-tab-pill" id="cpill-financ"><span class="pill-dot"></span>Financiamento</div>
+        <div class="cl-tab-pill" id="cpill-premis"><span class="pill-dot"></span>Premissas</div>
+        <div class="cl-tab-pill" id="cpill-dre"><span class="pill-dot"></span>DRE Principal</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── GLOSSÁRIO ── -->
+  <section id="section-glossario" class="section">
+    <div class="sec-header">
+      <div class="sec-tag">📖 Referência</div>
+      <h1 class="sec-title">Glossário</h1>
+      <p class="sec-desc">Termos técnicos do Estudo de Viabilidade em ordem alfabética.</p>
+    </div>
+
+    <div id="glossary-list">
+      <div class="glossary-item"><div class="gl-term">Amortização</div><div class="gl-def">Reconhecimento contábil do consumo de ativos intangíveis ao longo de sua vida útil (softwares, marcas, patentes).</div></div>
+      <div class="glossary-item"><div class="gl-term">Beta Setorial</div><div class="gl-def">Medida do risco de um setor em relação ao mercado. Beta > 1 = mais volátil que o mercado; Beta < 1 = menos volátil.</div></div>
+      <div class="glossary-item"><div class="gl-term">Carência</div><div class="gl-def">Período inicial de um financiamento sem pagamento de parcelas (ou com pagamento apenas de juros). Juros continuam acumulando.</div></div>
+      <div class="glossary-item"><div class="gl-term">CAPM</div><div class="gl-def">Capital Asset Pricing Model. Modelo para estimar o custo de capital próprio: Ke = Rf + β × (Rm − Rf).</div></div>
+      <div class="glossary-item"><div class="gl-term">CMV</div><div class="gl-def">Custo das Mercadorias Vendidas. Valor pago pelos produtos que foram efetivamente vendidos no período.</div></div>
+      <div class="glossary-item"><div class="gl-term">CSLL</div><div class="gl-def">Contribuição Social sobre o Lucro Líquido. Tributo federal de 9% incidente sobre o lucro das pessoas jurídicas.</div></div>
+      <div class="glossary-item"><div class="gl-term">Depreciação</div><div class="gl-def">Perda de valor contábil de bens físicos do ativo imobilizado ao longo do tempo por uso ou obsolescência.</div></div>
+      <div class="glossary-item"><div class="gl-term">DFC</div><div class="gl-def">Demonstração do Fluxo de Caixa. Relatório que evidencia entradas e saídas efetivas de caixa em três atividades: operacional, investimento e financiamento.</div></div>
+      <div class="glossary-item"><div class="gl-term">DRE</div><div class="gl-def">Demonstrativo do Resultado do Exercício. Relatório que apresenta receitas, custos, despesas e resultado líquido de um período.</div></div>
+      <div class="glossary-item"><div class="gl-term">EBT</div><div class="gl-def">Earnings Before Tax — Lucro Antes dos Impostos sobre o Lucro. Resultado antes da aplicação de IRPJ e CSLL.</div></div>
+      <div class="glossary-item"><div class="gl-term">EBITDA</div><div class="gl-def">Earnings Before Interest, Taxes, Depreciation and Amortization. Lucro operacional antes de efeitos financeiros, tributários e contábeis não-caixa.</div></div>
+      <div class="glossary-item"><div class="gl-term">FGTS</div><div class="gl-def">Fundo de Garantia do Tempo de Serviço. Encargo patronal de 8% sobre o salário bruto do empregado.</div></div>
+      <div class="glossary-item"><div class="gl-term">GAP Concorrente</div><div class="gl-def">Diferença percentual entre o preço praticado pela empresa e o preço do principal concorrente. Indica posicionamento competitivo.</div></div>
+      <div class="glossary-item"><div class="gl-term">IRPJ</div><div class="gl-def">Imposto de Renda Pessoa Jurídica. Alíquota padrão de 15% sobre o lucro (+ adicional de 10% sobre lucro que exceder R$20k/mês no Lucro Real).</div></div>
+      <div class="glossary-item"><div class="gl-term">Market Share</div><div class="gl-def">Participação de mercado. Calculado como: Vendas Totais / Potencial de Consumo × 100.</div></div>
+      <div class="glossary-item"><div class="gl-term">Markup</div><div class="gl-def">Índice multiplicador aplicado ao custo para formar o preço de venda. Fórmula: 1 / (1 − D − T − L).</div></div>
+      <div class="glossary-item"><div class="gl-term">NCG</div><div class="gl-def">Necessidade de Capital de Giro. Capital necessário para financiar o ciclo operacional: NCG = Contas a Receber + Estoque − Contas a Pagar.</div></div>
+      <div class="glossary-item"><div class="gl-term">Payback</div><div class="gl-def">Período para recuperação do investimento inicial com os fluxos de caixa acumulados. Meta padrão: menos de 5 anos.</div></div>
+      <div class="glossary-item"><div class="gl-term">Receita Líquida</div><div class="gl-def">Receita Bruta deduzida de impostos sobre vendas, devoluções e abatimentos. Base para cálculo de custos e margens.</div></div>
+      <div class="glossary-item"><div class="gl-term">SAC</div><div class="gl-def">Sistema de Amortização Constante. Amortização fixa em todas as parcelas; juros e prestações decrescem ao longo do tempo.</div></div>
+      <div class="glossary-item"><div class="gl-term">Space Data</div><div class="gl-def">Ferramenta que usa dados do IBGE para projetar o Potencial de Consumo de mercado por segmento e região.</div></div>
+      <div class="glossary-item"><div class="gl-term">Tabela Price</div><div class="gl-def">Sistema de financiamento com parcelas fixas. A composição interna varia: mais juros no início, mais amortização no final.</div></div>
+      <div class="glossary-item"><div class="gl-term">TIR</div><div class="gl-def">Taxa Interna de Retorno. Taxa de desconto que zera o VPL. O projeto é viável quando TIR > WACC.</div></div>
+      <div class="glossary-item"><div class="gl-term">VPL</div><div class="gl-def">Valor Presente Líquido. Soma dos fluxos futuros descontados pelo WACC menos o investimento inicial. Projeto viável quando VPL > 0.</div></div>
+      <div class="glossary-item"><div class="gl-term">WACC</div><div class="gl-def">Weighted Average Cost of Capital — Custo Médio Ponderado de Capital. Taxa mínima de retorno para remunerar todas as fontes de capital.</div></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- BACK TO TOP -->
+<button id="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+const sections = document.querySelectorAll('.section');
+const navItems = document.querySelectorAll('.nav-item');
+const navSubs = document.querySelectorAll('.nav-sub');
+
+function goTo(id) {
+  sections.forEach(s => s.classList.remove('active'));
+  navItems.forEach(n => n.classList.remove('active'));
+  navSubs.forEach(n => n.classList.remove('active'));
+
+  const target = document.getElementById('section-' + id);
+  if (target) target.classList.add('active');
+
+  navItems.forEach(n => {
+    if (n.dataset.section === id) n.classList.add('active');
+  });
+
+  document.getElementById('read-status').textContent = id.charAt(0).toUpperCase() + id.slice(1);
+  window.scrollTo({top:0,behavior:'smooth'});
+  updateReadProgress();
+}
+
+navItems.forEach(item => {
+  item.addEventListener('click', () => goTo(item.dataset.section));
+});
+navSubs.forEach(sub => {
+  sub.addEventListener('click', (e) => {
+    e.stopPropagation();
+    goTo(sub.dataset.section);
+    sub.classList.add('active');
+  });
+});
+
+// ── READ PROGRESS ─────────────────────────────────────────────────────────────
+function updateReadProgress() {
+  const main = document.getElementById('main');
+  const scrollTop = main.scrollTop || window.scrollY;
+  const scrollHeight = (main.scrollHeight || document.body.scrollHeight) - window.innerHeight;
+  const pct = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+  document.getElementById('read-progress-bar').style.width = Math.min(pct, 100) + '%';
+  document.getElementById('back-top').classList.toggle('show', scrollTop > 200);
+}
+window.addEventListener('scroll', updateReadProgress);
+
+// ── SEARCH ────────────────────────────────────────────────────────────────────
+const searchIndex = [
+  { title: 'Regime Tributário', section: 'conceitos', keywords: 'simples nacional lucro presumido real imposto regime tributário' },
+  { title: 'WACC', section: 'conceitos', keywords: 'wacc custo capital ponderado beta setorial risco taxa livre' },
+  { title: 'Investimentos Iniciais', section: 'investimentos', keywords: 'ativo pré-operacional gasto fixo investimento inicial quantidade' },
+  { title: 'Encargos Salariais', section: 'investimentos', keywords: 'fgts inss salário encargo benefício funcionário pessoal' },
+  { title: 'Sistema Price', section: 'financiamento', keywords: 'price tabela price parcela fixa financiamento amortização' },
+  { title: 'Sistema SAC', section: 'financiamento', keywords: 'sac amortização constante parcelas decrescentes financiamento' },
+  { title: 'Taxa de Juros', section: 'financiamento', keywords: 'taxa mensal anual equivalente conversão juros carência' },
+  { title: 'Gastos Variáveis', section: 'gastos', keywords: 'gasto variável mão de obra frete aquisição custo variável' },
+  { title: 'Markup', section: 'precificacao', keywords: 'markup índice multiplicador precificação preço venda' },
+  { title: 'Margem de Contribuição', section: 'precificacao', keywords: 'margem contribuição mc precificação custo variável' },
+  { title: 'JR Precification', section: 'precificacao', keywords: 'jr precification market share peso demanda estratégico' },
+  { title: 'GAP Concorrente', section: 'precificacao', keywords: 'gap concorrente competitividade preço mercado posicionamento' },
+  { title: 'DRE', section: 'dre', keywords: 'dre demonstrativo resultado exercício ebitda lucro receita' },
+  { title: 'EBITDA', section: 'dre', keywords: 'ebitda lucro operacional juros impostos depreciação amortização' },
+  { title: 'VPL', section: 'indicadores', keywords: 'vpl valor presente líquido viabilidade indicador financeiro' },
+  { title: 'TIR', section: 'indicadores', keywords: 'tir taxa interna retorno wacc indicador financeiro' },
+  { title: 'Payback', section: 'indicadores', keywords: 'payback retorno investimento período anos indicador' },
+  { title: 'Simulação de Cenários', section: 'indicadores', keywords: 'cenário pessimista base otimista simulação mínimo viável' },
+  { title: 'Premissas de Projeção', section: 'premissas', keywords: 'premissa projeção crescimento receita dedução ir prazo' },
+  { title: 'Fluxo de Caixa', section: 'ncg', keywords: 'fluxo caixa dfc operacional investimento financiamento' },
+  { title: 'NCG — Capital de Giro', section: 'ncg', keywords: 'ncg necessidade capital de giro contas receber pagar estoque' },
+  { title: 'Calculadora WACC', section: 'calculadoras', keywords: 'calculadora wacc calcular ke capital próprio' },
+  { title: 'Calculadora Markup', section: 'calculadoras', keywords: 'calculadora markup preço venda margem contribuição' },
+  { title: 'Conversor de Taxa', section: 'calculadoras', keywords: 'converter taxa anual mensal equivalente' },
+  { title: 'Checklist', section: 'checklist', keywords: 'checklist verificação consultor planilha' },
+  { title: 'Glossário', section: 'glossario', keywords: 'glossário termos definições vocabulário' },
+];
+
+const searchInput = document.getElementById('search');
+const searchResults = document.getElementById('search-results');
+
+searchInput.addEventListener('input', function() {
+  const q = this.value.trim().toLowerCase();
+  if (!q || q.length < 2) { searchResults.classList.remove('show'); return; }
+
+  const results = searchIndex.filter(item =>
+    item.title.toLowerCase().includes(q) || item.keywords.includes(q)
+  ).slice(0, 6);
+
+  if (!results.length) { searchResults.classList.remove('show'); return; }
+
+  searchResults.innerHTML = results.map(r => `
+    <div class="sr-item" onclick="goTo('${r.section}');searchInput.value='';searchResults.classList.remove('show')">
+      <div class="sr-title">${r.title.replace(new RegExp(q,'gi'), m => `<span class="sr-highlight">${m}</span>`)}</div>
+      <div class="sr-section">${r.section}</div>
+    </div>
+  `).join('');
+  searchResults.classList.add('show');
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#search-wrap')) searchResults.classList.remove('show');
+});
+
+// ── SCENARIO TABS ─────────────────────────────────────────────────────────────
+function setScenario(name) {
+  document.querySelectorAll('.stab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.scenario-content').forEach(c => c.classList.remove('active'));
+  document.querySelector(`.stab.${name}`).classList.add('active');
+  document.getElementById('sc-' + name).classList.add('active');
+}
+
+// ── CHECKLIST ─────────────────────────────────────────────────────────────────
+const CL_TABS = ['wacc','invest','gastos','financ','premis','dre'];
+
+function clSwitchTab(name) {
+  document.querySelectorAll('.cl-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.cl-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`.cl-tab[data-tab="${name}"]`).classList.add('active');
+  document.getElementById('clp-' + name).classList.add('active');
+}
+
+function toggleCheck(el, tab) {
+  el.classList.toggle('done');
+  const check = el.querySelector('.cl-check');
+  check.textContent = el.classList.contains('done') ? '✓' : '';
+  updateCheckProgress(tab);
+}
+
+function updateCheckProgress(changedTab) {
+  let totalAll = 0, totalDone = 0;
+
+  CL_TABS.forEach(tab => {
+    const items = document.querySelectorAll(`.checklist[data-tab="${tab}"] .cl-item`);
+    const done  = document.querySelectorAll(`.checklist[data-tab="${tab}"] .cl-item.done`);
+    const all   = items.length;
+    const d     = done.length;
+    totalAll  += all;
+    totalDone += d;
+
+    // mini bar
+    const miniBar = document.getElementById('bar-' + tab);
+    if (miniBar) miniBar.style.width = (all ? Math.round(d/all*100) : 0) + '%';
+
+    // pill on tab
+    const pill = document.getElementById('pill-' + tab);
+    if (pill) {
+      pill.textContent = d + '/' + all;
+    }
+
+    // tab done-all class
+    const tabEl = document.querySelector(`.cl-tab[data-tab="${tab}"]`);
+    if (tabEl) tabEl.classList.toggle('done-all', d === all && all > 0);
+
+    // bottom pill
+    const cpill = document.getElementById('cpill-' + tab);
+    if (cpill) cpill.classList.toggle('done', d === all && all > 0);
+  });
+
+  const pct = totalAll ? Math.round(totalDone / totalAll * 100) : 0;
+  document.getElementById('cl-pct').textContent = pct;
+  document.getElementById('cl-bar').style.width = pct + '%';
+  const label = document.getElementById('cl-count-label');
+  if (label) label.textContent = totalDone + ' de ' + totalAll + ' itens concluídos';
+}
+
+// init counts on load
+updateCheckProgress();
+
+// ── CALCULADORA WACC ──────────────────────────────────────────────────────────
+function calcWACC() {
+  const rf   = parseFloat(document.getElementById('w-rf').value) / 100 || 0;
+  const beta = parseFloat(document.getElementById('w-beta').value) || 0;
+  const prm  = parseFloat(document.getElementById('w-prm').value) / 100 || 0;
+  const kd   = parseFloat(document.getElementById('w-kd').value) / 100 || 0;
+  const ir   = parseFloat(document.getElementById('w-ir').value) / 100 || 0;
+  const pe   = parseFloat(document.getElementById('w-pe').value) / 100 || 0;
+  const pd   = 1 - pe;
+
+  const ke   = rf + beta * prm;
+  const kdL  = kd * (1 - ir); // Kd after tax
+  const wacc = ke * pe + kdL * pd;
+
+  document.getElementById('w-ke-display').textContent = (ke * 100).toFixed(2) + '% a.a.';
+  document.getElementById('w-wacc').textContent = (wacc * 100).toFixed(2) + '%';
+}
+calcWACC();
+
+// ── CALCULADORA MARKUP ────────────────────────────────────────────────────────
+function calcMarkup() {
+  const custo = parseFloat(document.getElementById('m-custo').value) || 0;
+  const D     = parseFloat(document.getElementById('m-desp').value) / 100 || 0;
+  const T     = parseFloat(document.getElementById('m-trib').value) / 100 || 0;
+  const L     = parseFloat(document.getElementById('m-lucro').value) / 100 || 0;
+  const denom = 1 - D - T - L;
+
+  if (denom <= 0) {
+    document.getElementById('m-idx').textContent = '∞';
+    document.getElementById('m-preco').textContent = '—';
+    document.getElementById('m-mc').textContent = '—';
+    return;
+  }
+
+  const idx   = 1 / denom;
+  const preco = custo * idx;
+  const mc    = ((preco - custo) / preco * 100);
+
+  document.getElementById('m-idx').textContent = idx.toFixed(3);
+  document.getElementById('m-preco').textContent = 'R$ ' + preco.toFixed(2);
+  document.getElementById('m-mc').textContent = mc.toFixed(1) + '%';
+}
+calcMarkup();
+
+// ── CONVERSOR DE TAXA ─────────────────────────────────────────────────────────
+function calcTaxa() {
+  const ta = parseFloat(document.getElementById('t-anual').value) / 100 || 0;
+  const tm = Math.pow(1 + ta, 1/12) - 1;
+  document.getElementById('t-mensal').textContent = (tm * 100).toFixed(4) + '% a.m.';
+}
+calcTaxa();
+
+// ── KEYBOARD NAV ──────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && !e.target.matches('input')) {
+    e.preventDefault();
+    document.getElementById('search').focus();
+  }
+  if (e.key === 'Escape') {
+    searchResults.classList.remove('show');
+    document.getElementById('search').blur();
+  }
+});
+</script>
+</body>
+</html>
